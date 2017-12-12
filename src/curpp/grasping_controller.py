@@ -33,11 +33,11 @@ class MoveitPickPlaceInterface(object):
         :param allowed_execution_time: Seconds for executing grasp
         """
 
-        self.arm_move_group = moveit_commander.MoveGroupCommander(arm_name)
-        self.gripper_move_group = moveit_commander.MoveGroupCommander(gripper_name)
-
         self.pick_place_analyzer = moveit_python.PickPlaceInterface(arm_name, gripper_name, plan_only=True)
         self.pick_place_executor = moveit_python.PickPlaceInterface(arm_name, gripper_name, plan_only=False)
+
+        self.arm_move_group = moveit_commander.MoveGroupCommander(arm_name)
+        self.gripper_move_group = moveit_commander.MoveGroupCommander(gripper_name)
 
         self.analyzer_planner_id = analyzer_planner_id
         self.execution_planner_id = execution_planner_id

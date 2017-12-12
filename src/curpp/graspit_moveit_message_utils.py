@@ -10,6 +10,44 @@ import ipdb
 import typing
 
 
+def moveit_error_code_to_string(moveit_error_code):
+    # type: (moveit_msgs.msg.MoveItErrorCodes) -> str
+    return {
+        # overall behavior
+        1: "SUCCESS",
+        99999: "FAILURE",
+        -1: "PLANNING_FAILED",
+        -2: "INVALID_MOTION_PLAN",
+        -3: "MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE",
+        -4: "CONTROL_FAILED",
+        -5: "UNABLE_TO_AQUIRE_SENSOR_DATA",
+        -6: "TIMED_OUT",
+        -7: "PREEMPTED",
+
+        # planning & kinematics request errors
+        -10: "START_STATE_IN_COLLISION",
+        -11: "START_STATE_VIOLATES_PATH_CONSTRAINTS",
+        -12: "GOAL_IN_COLLISION",
+        -13: "GOAL_VIOLATES_PATH_CONSTRAINTS",
+        -14: "GOAL_CONSTRAINTS_VIOLATED",
+        -15: "INVALID_GROUP_NAME",
+        -16: "INVALID_GOAL_CONSTRAINTS",
+        -17: "INVALID_ROBOT_STATE",
+        -18: "INVALID_LINK_NAME",
+        -19: "INVALID_OBJECT_NAME",
+
+        # system errors
+        -21: "FRAME_TRANSFORM_FAILURE",
+        -22: "COLLISION_CHECKING_UNAVAILABLE",
+        -23: "ROBOT_STATE_STALE",
+        -24: "SENSOR_INFO_STALE",
+
+        # kinematics errors
+        -31: "NO_IK_SOLUTION"
+
+    }.get(moveit_error_code.val, "Invalid Error")
+
+
 def graspit_grasp_pose_to_moveit_grasp_pose(
         listener,                     # type: tf.TransformListener
         graspit_grasp_msg,            # type: graspit_msgs.msg.Grasp
