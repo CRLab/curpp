@@ -1,7 +1,7 @@
 import moveit_msgs.msg
 import geometry_msgs.msg
 import trajectory_msgs.msg
-import graspit_msgs.msg
+import graspit_interface.msg
 import tf
 import rospy
 import tf_conversions
@@ -50,7 +50,7 @@ def moveit_error_code_to_string(moveit_error_code):
 
 def graspit_grasp_pose_to_moveit_grasp_pose(
         listener,                     # type: tf.TransformListener
-        graspit_grasp_msg,            # type: graspit_msgs.msg.Grasp
+        graspit_grasp_msg,            # type: graspit_interface.msg.Grasp
         end_effector_link,            # type: str
         grasp_frame                   # type: str
 ):
@@ -84,7 +84,7 @@ def graspit_grasp_pose_to_moveit_grasp_pose(
         return geometry_msgs.msg.Pose()
 
     graspit_grasp_msg_final_grasp_tran_matrix = tf_conversions.toMatrix(
-        tf_conversions.fromMsg(graspit_grasp_msg.final_grasp_pose)
+        tf_conversions.fromMsg(graspit_grasp_msg.pose)
     )
 
     approach_tran_to_end_effector_tran_matrix = tf.TransformerROS().fromTranslationRotation(at_to_ee_tran, at_to_ee_rot)
@@ -129,7 +129,8 @@ def get_approach_dir_in_ee_coords(
 
 
 def graspit_grasp_to_moveit_grasp(
-        graspit_grasp_msg,                                          # type: graspit_msgs.msg.Grasp
+        object_name,                                                # type: str
+        graspit_grasp_msg,                                          # type: graspit_interface.msg.Grasp
         listener,                                                   # type: tf.TransformListener
         grasp_tran_frame_name,                                      # type: str
         end_effector_link,                                          # type: str
@@ -211,7 +212,7 @@ def graspit_grasp_to_moveit_grasp(
         grasp_tran_frame_name
     )
     moveit_grasp.grasp_pose.pose = ee_pose
-    moveit_grasp.grasp_pose.header.frame_id = graspit_grasp_msg.object_name
+    moveit_grasp.grasp_pose.header.frame_id = object_name
 
     # # The estimated probability of success for this grasp, or some other
     # # measure of how "good" it is.

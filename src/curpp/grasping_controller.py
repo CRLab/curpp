@@ -147,3 +147,7 @@ class MoveitPickPlaceInterface(object):
     def detach_all_blocks(self, block_names):
         for block in block_names:
             self.arm_move_group.detach_object(block)
+
+    def stop_execution(self):
+        self.arm_move_group.stop()
+        self.gripper_move_group.stop()
