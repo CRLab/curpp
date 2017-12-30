@@ -99,9 +99,9 @@ catkin_python_setup()
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES moveit_pick_place_action_server
- CATKIN_DEPENDS actionlib
+#    INCLUDE_DIRS include
+#    LIBRARIES generate_grasp_markers _generate_grasp_markers_wrapper_cpp
+#    CATKIN_DEPENDS roscpp
 #  DEPENDS system_lib
 )
 
@@ -117,9 +117,8 @@ include_directories(
 )
 
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/moveit_pick_place_action_server.cpp
-# )
+#add_library(generate_grasp_markers src/grasp_markers.cpp)
+#add_library(_generate_grasp_markers_wrapper_cpp src/grasp_markers_wrapper.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
