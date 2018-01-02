@@ -4,6 +4,7 @@ import geometry_msgs.msg
 import block_recognition_msgs.msg
 import visualization_msgs.msg
 import graspit_interface.msg
+import std_msgs.msg
 
 import block_recognition
 import typing
@@ -45,7 +46,7 @@ def plan_grasps(x=0, y=0, z=0.080):
     return grasps
 
 
-def _create_block_marker(block, is_highlighted, color=None):
+def create_block_marker(block, is_highlighted, color=None):
     # type: (block_recognition_msgs.msg.DetectedBlock) -> visualization_msgs.msg.Marker
     marker = visualization_msgs.msg.Marker()
 
@@ -101,13 +102,66 @@ def capture_grasp_marker(color=None):
     return grasp_promise
 
 
+def create_block_position_marker(block, position, color=None, is_highlighted=False):
+    # type: (block_recognition_msgs.msg.DetectedBlock, geometry_msgs.msg.Point, std_msgs.msg.ColorRGBA, bool) -> visualization_msgs.msg.Marker
+    marker = visualization_msgs.msg.Marker()
+
+    marker.header = block.pose_stamped.header
+    marker.type = visualization_msgs.msg.Marker.CUBE
+    marker.action = visualization_msgs.msg.Marker.ADD
+    marker.lifetime = rospy.Duration(0)  # Show block until it is deleted
+
+    # Add scaling factor based on the size of the cube * 1.1 for highlighted
+    if is_highlighted:
+        marker.scale.x = block.edge_length * 1.5
+        marker.scale.y = block.edge_length * 1.5
+        marker.scale.z = block.edge_length * 1.5
+        marker.color = constants.HIGHLIGHTED_BLOCK_COLOR
+        marker.id = -1  # "highlighted"
+    else:
+        # Add scaling factor based on the size of the cube
+        marker.scale.x = block.edge_length * 1.3
+        marker.scale.y = block.edge_length * 1.3
+        marker.scale.z = block.edge_length * 1.3
+        marker.color = constants.NORMAL_BLOCK_COLOR
+        marker.id = position.__hash__
+
+    if color is not None:
+        marker.color = color
+
+    marker.pose.position = position
+
+    return marker
+
+
+def generate_delete_all_marker_array():
+    delete_all_array = visualization_msgs.msg.MarkerArray()
+    delete_all_marker = visualization_msgs.msg.Marker()
+    delete_all_marker.action = visualization_msgs.msg.Marker.DELETEALL
+    delete_all_array.markers.append(delete_all_marker)
+    return delete_all_array
+
+
+def plan_place_locations():
+    close_position = geometry_msgs.msg.Point()
+    give_position = geometry_msgs.msg.Point()
+
+    close_position.x = rospy.get_param("close_final_block_position_x")
+    close_position.y = rospy.get_param("close_final_block_position_y")
+    close_position.z = rospy.get_param("close_final_block_position_z")
+
+    give_position.x = rospy.get_param("give_final_block_position_x")
+    give_position.y = rospy.get_param("give_final_block_position_y")
+    give_position.z = rospy.get_param("give_final_block_position_z")
+
+    return [close_position, give_position]
+
+
 class SkillManager:
 
     def __init__(self):
 
         # Initialize publishers
-        self._recognized_blocks_publisher = rospy.Publisher("/ui_recognized_objects", visualization_msgs.msg.MarkerArray, queue_size=1)
-        self._grasp_marker_publisher = rospy.Publisher("/ui_current_grasp", visualization_msgs.msg.MarkerArray, queue_size=1)
 
         # Pull all params off param server
         self.grasp_approach_tran_frame = rospy.get_param("grasp_approach_tran_frame")
@@ -201,7 +255,7 @@ class SkillManager:
 
         return pick_result, success
 
-    def execute_grasp(self, object_name, graspit_grasp):
+    def execute_grasp(self, object_name, graspit_grasp, place_position=None):
         # type: (str, graspit_interface.msg.Grasp) -> bool
         rospy.loginfo("Executing grasp goal")
 
@@ -221,9 +275,12 @@ class SkillManager:
         rospy.loginfo("Object {} in planning scene. Pose: {}".format(object_name, block_pose_stamped.pose))
 
         # Shift block pose to place location in param server
-        block_pose_stamped.pose.position.x = rospy.get_param("final_block_position_x")
-        block_pose_stamped.pose.position.y = rospy.get_param("final_block_position_y")
-        block_pose_stamped.pose.position.z = rospy.get_param("final_block_position_z")
+        if place_position is not None:
+            block_pose_stamped.pose.position.x = rospy.get_param("final_block_position_x")
+            block_pose_stamped.pose.position.y = rospy.get_param("final_block_position_y")
+            block_pose_stamped.pose.position.z = rospy.get_param("final_block_position_z")
+        else:
+            block_pose_stamped.pose.position = place_position
 
         # Convert graspit grasp to moveit grasp
         moveit_grasp_msg = self.graspit_grasp_to_moveit_grasp(object_name, graspit_grasp)
@@ -294,40 +351,3 @@ class SkillManager:
 
         # Return all detected blocks
         return detected_blocks
-
-    def remove_all_block_markers(self):
-        marker_array = visualization_msgs.msg.MarkerArray()
-
-        marker = visualization_msgs.msg.Marker()
-        marker.action = visualization_msgs.msg.Marker.DELETEALL
-        marker_array.markers.append(marker)
-
-        self._recognized_blocks_publisher.publish(marker_array)
-
-    def publish_block_markers(self,
-                              current_blocks,
-                              highlighted_block=None,
-                              block_color=constants.NORMAL_BLOCK_COLOR,
-                              highlighted_block_color=constants.HIGHLIGHTED_BLOCK_COLOR):
-
-        marker_array = visualization_msgs.msg.MarkerArray()
-
-        for block in current_blocks:
-            marker_array.markers.append(_create_block_marker(block, is_highlighted=False, color=block_color))
-
-        if highlighted_block is not None:
-            marker_array.markers.append(_create_block_marker(highlighted_block,
-                                                             is_highlighted=True,
-                                                             color=highlighted_block_color))
-
-        self._recognized_blocks_publisher.publish(marker_array)
-
-    def publish_grasp_marker(self, grasp_marker):
-        self._grasp_marker_publisher.publish(grasp_marker)
-
-    def remove_all_grasp_markers(self):
-        grasp_marker = visualization_msgs.msg.MarkerArray()
-        delete_all_marker = visualization_msgs.msg.Marker()
-        delete_all_marker.action = visualization_msgs.msg.Marker.DELETEALL
-        grasp_marker.markers.append(delete_all_marker)
-        self._grasp_marker_publisher.publish(grasp_marker)
