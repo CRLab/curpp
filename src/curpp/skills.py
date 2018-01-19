@@ -57,16 +57,16 @@ def create_block_marker(block, is_highlighted, color=None):
 
     if is_highlighted:
         # Add scaling factor based on the size of the cube * 1.1 for highlighted
-        marker.scale.x = block.edge_length * 1.5
-        marker.scale.y = block.edge_length * 1.5
-        marker.scale.z = block.edge_length * 1.5
+        marker.scale.x = block.edge_length * 1.0
+        marker.scale.y = block.edge_length * 1.0
+        marker.scale.z = block.edge_length * 1.0
         marker.color = constants.HIGHLIGHTED_BLOCK_COLOR
         marker.id = -1  # "highlighted"
     else:
         # Add scaling factor based on the size of the cube
-        marker.scale.x = block.edge_length * 1.3
-        marker.scale.y = block.edge_length * 1.3
-        marker.scale.z = block.edge_length * 1.3
+        marker.scale.x = block.edge_length * 1.0
+        marker.scale.y = block.edge_length * 1.0
+        marker.scale.z = block.edge_length * 1.0
         marker.color = constants.NORMAL_BLOCK_COLOR
         marker.id = block.unique_id
 
