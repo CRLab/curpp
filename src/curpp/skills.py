@@ -8,6 +8,7 @@ import tf
 import pyquaternion
 import numpy as np
 import deprecated
+import trollius as asyncio
 
 import grasping_controller
 import graspit_moveit_message_utils
@@ -47,7 +48,7 @@ def plan_grasps(x=0, y=0, z=0.080):
     return grasps
 
 
-class SkillManager:
+class CURPPManager:
 
     def __init__(self, config):
         # type: (config.Config) -> ()
@@ -67,6 +68,18 @@ class SkillManager:
 
         self.scene = moveit_commander.PlanningSceneInterface()
         self.tf_listener = tf.TransformListener()
+        self.tf_broadcaster = tf.TransformBroadcaster()
+
+        # If we need to broadcast approach_tran - start publishing
+        if self.config.broadcast_approach_tran:
+            asyncio.ensure_future(self._publish_approach_tran())
+
+    @asyncio.coroutine
+    def _publish_approach_tran(self):
+        rate = rospy.Rate(50)
+        while not rospy.is_shutdown():
+            self.tf_broadcaster.sendTransformMessage(self.config.approach_tran)
+            rate.sleep()
 
     def graspit_grasp_to_moveit_grasp(self, object_name, graspit_grasp):
         # type: (str, graspit_interface.msg.Grasp) -> moveit_msgs.msg.Grasp

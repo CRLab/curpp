@@ -8,6 +8,9 @@ setup_args = generate_distutils_setup(
     name="curpp",
     description="Code for interfacing with Moveit! and Graspit! grasps using pick and place",
     packages=['curpp'],
+    dependencies=[
+        ''
+    ],
     package_dir={'': 'src'})
 
 setup(**setup_args)
