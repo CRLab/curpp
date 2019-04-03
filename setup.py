@@ -9,7 +9,7 @@ setup_args = generate_distutils_setup(
     description="Code for interfacing with Moveit! and Graspit! grasps using pick and place",
     packages=['curpp'],
     dependencies=[
-        ''
+        'deprecated', 'trollius', 'pyquaternion'
     ],
     package_dir={'': 'src'})
 

@@ -12,7 +12,6 @@ import trollius as asyncio
 
 import grasping_controller
 import graspit_moveit_message_utils
-
 import config
 
 
@@ -136,7 +135,7 @@ class CURPPManager:
         return pick_result, success
 
     def execute_grasp(self, object_name, graspit_grasp, place_position):
-        # type: (str, graspit_interface.msg.Grasp) -> bool
+        # type: (str, graspit_interface.msg.Grasp, geometry_msgs.msg.Point) -> bool
         rospy.loginfo("Executing grasp goal")
 
         object_ids = self.scene.get_attached_objects().keys()
@@ -162,7 +161,7 @@ class CURPPManager:
 
         # Execute pick on block
         success, pick_result = self.grasping_controller.execute_moveit_grasp(object_name, moveit_grasp_msg)
-        # type: pick_result -> moveit_msgs.msg.PickupResult
+        pick_result: moveit_msgs.msg.PickupResult
 
         if not success:
             error_code = graspit_moveit_message_utils.moveit_error_code_to_string(pick_result.error_code)
